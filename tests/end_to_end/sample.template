@@ -1,0 +1,5 @@
+Value Name (.+)
+Value Age (.+)
+
+Start
+  ^My name is ${Name} and I am ${Age} years old -> Record

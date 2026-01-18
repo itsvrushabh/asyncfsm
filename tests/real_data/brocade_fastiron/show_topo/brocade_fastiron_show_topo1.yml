@@ -1,0 +1,11 @@
+---
+parsed_sample:
+  - l2proto: "MRP"
+    mastervlan: "10"
+    topogroup: "10"
+  - l2proto: "MRP"
+    mastervlan: "14"
+    topogroup: "14"
+  - l2proto: "MRP"
+    mastervlan: "175"
+    topogroup: "175"
