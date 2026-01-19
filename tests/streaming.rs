@@ -1,5 +1,5 @@
 use std::io::Cursor;
-use textfsm_rs::TextFSM;
+use asyncfsm::TextFSM;
 
 #[test]
 fn test_parse_reader_streaming() {

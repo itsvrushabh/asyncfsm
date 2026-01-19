@@ -1,4 +1,4 @@
-use textfsm_rs::TextFSM;
+use asyncfsm::TextFSM;
 
 #[test]
 fn test_end_to_end() {

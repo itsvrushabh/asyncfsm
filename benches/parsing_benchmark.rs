@@ -1,5 +1,5 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use textfsm_rs::TextFSM;
+use asyncfsm::TextFSM;
 
 fn benchmark_parsing(c: &mut Criterion) {
     let template_path = "tests/data/cli/cisco_version_template";

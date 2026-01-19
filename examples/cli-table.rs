@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use textfsm_rs::*;
+use asyncfsm::*;
 
 #[derive(Serialize, Deserialize)]
 struct ParsedSample {

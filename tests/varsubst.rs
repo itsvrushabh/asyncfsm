@@ -1,8 +1,6 @@
-use textfsm_rs::varsubst::*;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use asyncfsm::varsubst::*;
     use pest::Parser;
     use pest::error::Error;
 

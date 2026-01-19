@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use textfsm_rs::*;
+use asyncfsm::*; 
 
 #[derive(Serialize, Deserialize)]
 struct ParsedSample {
@@ -12,7 +12,7 @@ enum VerifyResult {
     ResultsDiffer,
 }
 
-fn verify(template_name: &str, data_name: &str, yaml_verify_name: &str) -> Result<VerifyResult> {
+fn verify(template_name: &str, data_name: &str, yaml_verify_name: &str) -> asyncfsm::Result<VerifyResult> {
     let mut textfsm = TextFSM::from_file(template_name)?;
     let yaml = std::fs::read_to_string(yaml_verify_name).expect("YAML File read failed");
 
@@ -29,7 +29,7 @@ fn verify(template_name: &str, data_name: &str, yaml_verify_name: &str) -> Resul
             println!("yaml: {:?}", &yaml_map.parsed_sample);
             println!("\n");
 
-            let (only_in_parse, only_in_yaml) =
+            let (only_in_parse, only_in_yaml): (Vec<Vec<String>>, Vec<Vec<String>>) =
                 DataRecord::compare_sets(&result, &yaml_map.parsed_sample);
 
             let mut mismatch_count = 0;
@@ -56,7 +56,7 @@ fn verify(template_name: &str, data_name: &str, yaml_verify_name: &str) -> Resul
     }
 }
 
-fn collect_file_names(template_dir: &str, extension: &str) -> Result<Vec<String>> {
+fn collect_file_names(template_dir: &str, extension: &str) -> asyncfsm::Result<Vec<String>> {
     let mut base_names = Vec::new();
 
     for entry in std::fs::read_dir(template_dir)? {
@@ -73,7 +73,7 @@ fn collect_file_names(template_dir: &str, extension: &str) -> Result<Vec<String>
     Ok(base_names)
 }
 
-fn collect_bare_directories(base_dir: &str) -> Result<Vec<String>> {
+fn collect_bare_directories(base_dir: &str) -> asyncfsm::Result<Vec<String>> {
     let mut dir_names = Vec::new();
 
     for entry in std::fs::read_dir(base_dir)? {
@@ -100,7 +100,7 @@ fn main() {
     let tests_dir = format!("{}/tests/", &root_path);
     let template_names = collect_file_names(&template_dir, "textfsm")
         .expect("Could not scan the template directory");
-    let mut template_names_set = std::collections::HashSet::new();
+    let mut template_names_set = std::collections::HashSet::<String>::new();
     for t in &template_names {
         template_names_set.insert(t.clone());
     }

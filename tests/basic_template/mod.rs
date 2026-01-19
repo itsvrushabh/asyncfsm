@@ -1,4 +1,4 @@
-use textfsm_rs::TextFSM;
+use asyncfsm::TextFSM;
 
 #[test]
 fn test_basic_template() {
@@ -105,7 +105,7 @@ interface Vlan1
 #[test]
 #[cfg(feature = "clitable")]
 fn test_clitable_parsing() {
-    use textfsm_rs::CliTable;
+    use asyncfsm::CliTable;
     let index_path = "tests/basic_template/template/parseindex_index";
     let cli_table = CliTable::from_file(index_path).expect("Failed to load CLI table index");
 
@@ -137,7 +137,7 @@ fn test_clitable_parsing() {
 #[test]
 #[cfg(feature = "clitable")]
 fn test_clitable_parse_fail() {
-    use textfsm_rs::CliTable;
+    use asyncfsm::CliTable;
     // Missing Template column (has Templatebogus instead)
     let index_path = "tests/basic_template/template/parseindexfail1_index";
     let result = CliTable::from_file(index_path);

@@ -1,4 +1,4 @@
-use textfsm_rs::*;
+use asyncfsm::*;
 
 fn main() {
     env_logger::init();

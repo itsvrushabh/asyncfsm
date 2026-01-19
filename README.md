@@ -32,7 +32,7 @@ textfsm-rs = "0.3.5" # Check crates.io for the latest version
 ## Quick Start
 
 ```rust
-use textfsm_rs::{TextFSM, DataRecordConversion};
+use asyncfsm::{TextFSM, DataRecordConversion};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Initialize the FSM with a template
@@ -81,7 +81,7 @@ textfsm auto --index ntc_templates/templates/index --platform cisco_ios --comman
 Using the `ntc-templates` index style:
 
 ```rust
-use textfsm_rs::CliTable;
+use asyncfsm::CliTable;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let index = CliTable::from_file("ntc_templates/templates/index")?;

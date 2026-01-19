@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::Path;
 #[cfg(feature = "clitable")]
-use textfsm_rs::CliTable;
-use textfsm_rs::TextFSM;
+use asyncfsm::CliTable;
+use asyncfsm::TextFSM;
 
 fn get_data_dir() -> String {
     "tests/basic_template/cli".to_string()

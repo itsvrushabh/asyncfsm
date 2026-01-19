@@ -1,6 +1,8 @@
+use asyncfsm::{DataRecord, DataRecordConversion, TextFSM};
+#[cfg(feature = "clitable")]
+use asyncfsm::CliTable;
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
-use textfsm_rs::{DataRecordConversion, TextFSM};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -15,7 +17,9 @@ struct Cli {
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 enum OutputFormat {
+    #[cfg(feature = "json")]
     Json,
+    #[cfg(feature = "yaml")]
     Yaml,
 }
 
@@ -29,13 +33,14 @@ enum Commands {
 
         /// Path to the input data file
         #[arg(short, long)]
-        input: PathBuf,
+        input: Option<PathBuf>,
 
         /// Convert keys to lowercase
         #[arg(short, long)]
         lowercase: bool,
     },
     /// Use CLI Table (ntc-templates index) to parse data
+    #[cfg(feature = "clitable")]
     Auto {
         /// Path to the index file (e.g. ntc_templates/templates/index)
         #[arg(long)]
@@ -56,46 +61,74 @@ enum Commands {
 }
 
 fn main() -> anyhow::Result<()> {
-    let matches = clap::Command::new("textfsm")
-        .version("0.1.0")
-        .author("Author <author@example.com>")
-        .about("TextFSM utility")
-        .arg(
-            clap::Arg::new("template")
-                .help("The template file")
-                .required(true)
-                .index(1),
-        )
-        .arg(
-            clap::Arg::new("input")
-                .help("The input file")
-                .required(false)
-                .index(2),
-        )
-        .get_matches();
+    let cli = Cli::parse();
 
-    let template = matches.get_one::<String>("template").unwrap();
-    let fsm = TextFSM::from_file(template)?;
+    let results: Vec<DataRecord> = match cli.command {
+        Commands::Parse {
+            template,
+            input,
+            lowercase,
+        } => {
+            let mut fsm = TextFSM::from_file(template)?;
+            let conv = if lowercase {
+                Some(DataRecordConversion::LowercaseKeys)
+            } else {
+                None
+            };
 
-    if let Some(input) = matches.get_one::<String>("input") {
-        // We need mutable access for parse_file, but parse_reader takes ownership or mutable ref?
-        // parse_file takes &mut self.
-        // from_file returns a new instance.
-        let mut fsm = fsm;
-        let results = fsm.parse_file(input, Some(DataRecordConversion::LowercaseKeys))?;
-        println!("{}", serde_yaml::to_string(&results)?);
-    } else {
-        let stdin = std::io::stdin();
-        let reader = stdin.lock();
-        // parse_reader consumes self.
-        let iter = fsm.parse_reader(reader);
-        let mut results = Vec::new();
-        for record in iter {
-            results.push(record?);
+            if let Some(input_path) = input {
+                fsm.parse_file(input_path, conv)?
+            } else {
+                let stdin = std::io::stdin();
+                let reader = stdin.lock();
+                let iter = fsm.parse_reader(reader);
+                let mut results = Vec::new();
+                for record in iter {
+                    results.push(record?);
+                }
+                results
+            }
         }
-        if !results.is_empty() {
-            println!("{}", serde_yaml::to_string(&results)?);
+        #[cfg(feature = "clitable")]
+        Commands::Auto {
+            index,
+            platform,
+            command,
+            input,
+        } => {
+            let table = CliTable::from_file(index)?;
+            if let Some((dir, row)) = table.get_template_for_command(&platform, &command) {
+                // Find the first template that exists
+                let mut fsm = None;
+                for template_name in row.templates {
+                    let mut template_path = PathBuf::from(&dir);
+                    template_path.push(template_name);
+                    if template_path.exists() {
+                        fsm = Some(TextFSM::from_file(template_path)?);
+                        break;
+                    }
+                }
+
+                if let Some(mut fsm) = fsm {
+                    fsm.parse_file(input, None)?
+                } else {
+                    anyhow::bail!("No valid template found for command");
+                }
+            } else {
+                anyhow::bail!(
+                    "No template found in index for platform {} and command {}",
+                    platform,
+                    command
+                );
+            }
         }
+    };
+
+    match cli.format {
+        #[cfg(feature = "json")]
+        OutputFormat::Json => println!("{}", serde_json::to_string_pretty(&results)?),
+        #[cfg(feature = "yaml")]
+        OutputFormat::Yaml => println!("{}", serde_yaml::to_string(&results)?),
     }
 
     Ok(())

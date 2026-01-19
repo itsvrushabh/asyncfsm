@@ -41,7 +41,7 @@ impl VariableParser {
                         out.push(ParseChunk::DollarDollar);
                     }
                     Rule::end_dollar => {
-                        println!("WARNING: unescaped dollar in the end of line '{}'", &input);
+                        log::warn!("unescaped dollar in the end of line '{}'", &input);
                         out.push(ParseChunk::DollarDollar);
                     }
                     Rule::variable_name => {

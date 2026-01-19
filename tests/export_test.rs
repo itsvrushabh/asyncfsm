@@ -1,6 +1,6 @@
-use textfsm_rs::{OutputFormat, TextFSM, TextFsmExport};
+use asyncfsm::{OutputFormat, TextFSM, TextFsmExport};
 
-fn get_results() -> Vec<textfsm_rs::DataRecord> {
+fn get_results() -> Vec<asyncfsm::DataRecord> {
     let template = r###"Value Name (\S+)
 Value Age (\d+)
 

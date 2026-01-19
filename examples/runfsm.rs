@@ -1,4 +1,4 @@
-use textfsm_rs::*;
+use asyncfsm::*;
 
 fn main() {
     let template_name = std::env::args()
