@@ -110,8 +110,9 @@ impl DataRecord {
                     Value::Single(val) => {
                         list.push(val);
                     }
-                    Value::List(mut lst) => {
-                        list.append(&mut lst);
+                    Value::List(mut l) => {
+                        l.extend(list.iter().cloned());
+                        *old_value = Value::List(l);
                     }
                 },
             }

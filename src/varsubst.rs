@@ -1,6 +1,5 @@
-pub use pest::Parser;
 use pest::error::Error;
-pub use pest::iterators::Pair;
+use pest::Parser;
 use pest_derive::Parser;
 
 /// A parser for strings containing TextFSM variable substitutions.
@@ -8,7 +7,7 @@ use pest_derive::Parser;
 /// Handles formats like `$VAR`, `${VAR}`, and escaped `$$`.
 #[derive(Parser)]
 #[grammar = "varsubst.pest"]
-pub struct VariableParser;
+pub pub struct VariableParser;
 
 /// Represents a part of a parsed variable substitution string.
 #[derive(Debug, PartialEq)]
@@ -77,3 +76,4 @@ impl VariableParser {
         Ok(out)
     }
 }
+

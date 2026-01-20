@@ -1,10 +1,33 @@
+#![deny(
+    warnings,
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::perf,
+    clippy::cargo,
+    clippy::alloc_instead_of_core,
+    clippy::std_instead_of_core,
+    clippy::std_instead_of_alloc,
+    clippy::get_unwrap,
+    clippy::panic_in_result_fn,
+    clippy::pub_use,
+    clippy::question_mark_used,
+    clippy::rc_buffer,
+    clippy::rest_pat_in_fully_bound_structs,
+    clippy::same_name_method,
+    clippy::string_add,
+    clippy::unnecessary_self_imports,
+    clippy::unneeded_field_pattern,
+    clippy::use_debug,
+    clippy::verbose_file_reads
+)]
 pub mod error;
 pub mod record;
-pub use error::{Result, TextFsmError};
-pub use record::*;
+use crate::error::{Result, TextFsmError};
+use crate::record::*;
 use log::{debug, trace, warn};
-pub use pest::Parser;
-pub use pest::iterators::Pair;
+use pest::iterators::Pair;
+use pest::Parser;
 use pest_derive::Parser;
 use regex::Regex;
 use std::collections::{HashMap, VecDeque};
@@ -13,9 +36,7 @@ use std::collections::{HashMap, VecDeque};
 pub mod cli_table;
 pub mod export;
 pub mod varsubst;
-#[cfg(feature = "clitable")]
-pub use cli_table::CliTable;
-pub use export::{OutputFormat, TextFsmExport};
+
 
 /// An iterator that parses input line-by-line and yields `DataRecord`s.
 pub struct TextFsmIter<R> {
@@ -293,9 +314,6 @@ pub struct StateCompiled {
 }
 
 /// The runtime engine for TextFSM parsing.
-
-
-
 impl TextFSMParser {
     fn _log_pair(indent: usize, pair: &Pair<'_, Rule>) {
         let spaces = " ".repeat(indent);
