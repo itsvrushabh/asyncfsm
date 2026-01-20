@@ -1,6 +1,6 @@
 use crate::{Result, TextFsmError};
 use fancy_regex::Regex;
-use log::{debug, trace};
+use log::{debug, trace, warn};
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -19,7 +19,7 @@ pub struct CliTable {
     /// List of parsed index tables.
     pub tables: Vec<ParsedCliTable>,
     /// Map of platform names to their associated regex rules for command matching.
-    pub platform_regex_rules: HashMap<String, Vec<CliTableRegexRule>>,
+    pub platform_regex_rules: HashMap<String, Vec<CliTableRegexRule>>, 
 }
 
 /// A rule for matching a command to a specific row in an index table.
@@ -183,11 +183,27 @@ impl CliTable {
     ) -> Option<(String, CliTableRow)> {
         let plat_regex_list = self.platform_regex_rules.get(platform)?;
         for rule in plat_regex_list {
-            if rule.command_regex.is_match(cmd).expect("Fancy regex ok?") {
-                let row = self.tables[rule.table_index].rows[rule.row_index].clone();
-                let fname = &self.tables[rule.table_index].fname;
-                if let Some(fdir) = Self::get_directory(fname) {
-                    return Some((fdir, row));
+            match rule.command_regex.is_match(cmd) {
+                Ok(true) => {
+                    let row = self.tables[rule.table_index].rows[rule.row_index].clone();
+                    let fname = &self.tables[rule.table_index].fname;
+                    if let Some(fdir) = Self::get_directory(fname) {
+                        return Some((fdir, row));
+                    }
+                }
+                Ok(false) => {
+                    // Not a match; continue to next rule
+                }
+                Err(e) => {
+                    // Fancy-regex can return an error during matching (e.g., catastrophic backtracking).
+                    // Do not panic; warn and continue to other rules.
+                    warn!(
+                        "Regex match error while matching command '{}' against pattern '{}': {}",
+                        cmd,
+                        rule.command_regex.as_str(),
+                        e
+                    );
+                    continue;
                 }
             }
         }
@@ -245,13 +261,7 @@ mod tests {
         assert_eq!(CliTable::expand_brackets("show"), "show");
         assert_eq!(CliTable::expand_brackets("sh[[ow]]"), "sh(o(w)?)?");
         assert_eq!(CliTable::expand_brackets("[[show]]"), "(s(h(o(w)?)?)?)?");
-        assert_eq!(
-            CliTable::expand_brackets("sh[[ow]] ip bgp"),
-            "sh(o(w)?)? ip bgp"
-        );
-        assert_eq!(
-            CliTable::expand_brackets("sh[[ow]] ip bgp su[[mmary]]"),
-            "sh(o(w)?)? ip bgp su(m(m(a(r(y)?)?)?)?)?"
-        );
+        assert_eq!(CliTable::expand_brackets("sh[[ow]] ip bgp"), "sh(o(w)?)? ip bgp");
+        assert_eq!(CliTable::expand_brackets("sh[[ow]] ip bgp su[[mmary]]"), "sh(o(w)?)? ip bgp su(m(m(a(r(y)?)?)?)?)?");
     }
 }
